@@ -80,6 +80,11 @@
     nav ul li a:hover{
         color:rgb(236, 18, 26);
     }
+    #nav-container ul li a.active {
+    color: #e63003 !important; 
+    font-weight: 900 !important;
+    border-bottom: 3px solid #ff6600;
+}
     main{
         display:flex;
         flex-direction:column;
@@ -281,7 +286,7 @@
         text-decoration: none;
         cursor: pointer;
     }
-     body footer {
+    body footer #footer-placeholder{ 
         display: grid;
         grid-template-columns:1fr 1fr 1fr;
         width: 100%;
@@ -290,8 +295,8 @@
         color: black;
         font-weight: bold;
         font-size: 30px;
-        margin-left:auto;
-        margin-right:auto;
+        padding-left:10px;
+        padding-right:10px;
         border: 2px solid black;
         border-radius: 10px;
         margin-top:0px;
@@ -348,6 +353,7 @@
         width: 80px;
         height: auto;
     }
+    
     footer #social_media img:hover {
         transform: scale(1.1);
         transition: transform 0.3s;
