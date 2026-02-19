@@ -1,0 +1,17 @@
+[
+  {
+    "title": "Science Fair",
+    "start": "2024-05-10",
+    "description": "Annual science projects exhibition."
+  },
+  {
+    "title": "Moncada Science Tribute",
+    "start": "2024-05-20",
+    "allDay": true
+  },
+  {
+    "title": "Registration Deadline",
+    "start": "2024-06-01T12:00:00",
+    "color": "red"
+  }
+]

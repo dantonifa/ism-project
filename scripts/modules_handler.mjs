@@ -2,23 +2,18 @@
 import { fetchHtmlPartial } from "./fetch.mjs";
 import { updateFooterContent } from "./utils.mjs"; // Import the exported function
 
+// modules_handler.mjs
+// modules_handler.mjs
 export async function loadFooter() {
-  // Target the placeholder div we defined in HTML
-  const placeholder = document.getElementById("footer-placeholder");
-  if (!placeholder) {
-    console.error("Footer placeholder #footer-placeholder not found!");
-    return;
-  }
+  const footerContainer = document.getElementById("footer-placeholder");
 
   try {
     const footerHTML = await fetchHtmlPartial("footer.html");
-    // Insert the fetched HTML
-    placeholder.innerHTML = footerHTML;
+    footerContainer.innerHTML = footerHTML;
 
-    // NOW that elements exist in the DOM, run the update function
-    updateFooterContent(); 
-
+    // Use await here because updateFooterContent now fetches JSON
+    await updateFooterContent();
   } catch (error) {
-    placeholder.innerHTML = "<p>Error loading footer content.</p>";
+    footerContainer.innerHTML = "<p>Error loading footer content.</p>";
   }
 }

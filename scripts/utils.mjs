@@ -1,27 +1,25 @@
 // scripts/utils.mjs (Renamed from getdates.js for clarity)
 
 // Function to update dynamic dates and review count *after* insertion
-export function updateFooterContent() {
-    // 1. Update Current Year
-    const currentYearSpan = document.getElementById('currentyear');
-    if (currentYearSpan) {
-        currentYearSpan.textContent = new Date().getFullYear();
-    }
+// utils.mjs
+export async function updateFooterContent() {
+    try {
+        // Fetch the JSON data
+        const response = await fetch('data/school-info.json');
+        const data = await response.json();
 
-    // 2. Update Last Modified Date
-    const lastModifiedSpan = document.getElementById('lastModified');
-    if (lastModifiedSpan) {
-        lastModifiedSpan.textContent = document.lastModified; 
-    }
-    
-    // 3. Update Review Count from localStorage
-    const reviewCountDisplay = document.getElementById("review-count");
-    // Ensure we display whatever is in localStorage when the footer loads
-    let reviewCounter = localStorage.getItem("reviewCounter") || 0; 
-    if (reviewCountDisplay) {
-        reviewCountDisplay.textContent = reviewCounter;
+        // Target elements inside the footer.html partial
+        const nameEl = document.querySelector("#footer-school-name");
+        const addrEl = document.querySelector("#footer-address");
+
+        if (nameEl) nameEl.textContent = data.schoolName;
+        if (addrEl) addrEl.textContent = data.address;
+        
+    } catch (error) {
+        console.error("Could not update footer from JSON:", error);
     }
 }
+
 
 // Function that should be triggered *only* on the review form submission page
 export function incrementReviewCounter() {
