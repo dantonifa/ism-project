@@ -1,17 +1,21 @@
-// scripts/project.js
 import { loadFooter } from "./modules_handler.mjs";
 import { initializeFullCalendar } from "./calendarEvents.mjs";
-import { getDates } from "./getdates.js"; // <-- AÑADE ESTA LÍNEA
+import { getDates } from "./getdates.js";
 
-// Esperar a que el DOM esté cargado
 document.addEventListener("DOMContentLoaded", async () => {
-  const navLinks = document.querySelectorAll("#nav-container ul li a");
+  // --- 1. HERO FADE-IN LOGIC ---
+  const heroSection = document.querySelector("main #hero");
+  if (heroSection) {
+    setTimeout(() => {
+      heroSection.classList.add("loaded");
+    }, 150);
+  }
 
-  // location.href obtiene la URL completa
+  // --- 2. NAVIGATION LOGIC ---
+  const navLinks = document.querySelectorAll("#nav-container ul li a");
   const currentUrl = window.location.href;
 
   navLinks.forEach((link) => {
-    // link.href (sin getAttribute) devuelve la URL absoluta completa del enlace
     if (currentUrl === link.href) {
       link.classList.add("active");
     } else {
@@ -19,33 +23,54 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // ... rest of your code ...
+  // --- 3. SCROLL ANIMATION LOGIC (H2 & Charts) ---
+  const observerOptions = { threshold: 0.2 };
 
-  // --- Navigation Menu Logic ---
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        // Triggers for H2 (dramatic) and .chart-fade (slow)
+        if (entry.target.classList.contains("chart-fade")) {
+          entry.target.classList.add("chart-visible");
+        } else {
+          entry.target.classList.add("is-visible");
+        }
+        observer.unobserve(entry.target);
+      }
+    });
+  }, observerOptions);
+
+  // Observe the specific H2
+  const targetH2 = document.querySelector("main .card-1 #card-1-text h2");
+  if (targetH2) observer.observe(targetH2);
+
+  // Observe all elements with .chart-fade class
+  const charts = document.querySelectorAll(".chart-fade");
+  charts.forEach((chart) => observer.observe(chart));
+
+  // --- 4. NAVIGATION MENU LOGIC ---
   const hamburgerButton = document.getElementById("menu");
   const navMenu = document.querySelector("#nav-container");
-  hamburgerButton.addEventListener("click", () => {
-    navMenu.classList.toggle("is-open");
-    hamburgerButton.classList.toggle("open");
-  });
-
-  // --- Footer Loading Logic ---
-  const footerContainer = document.getElementById("footer-placeholder");
-
-  if (footerContainer) {
-    await loadFooter(); // Esperamos a que cargue el HTML del footer
-    getDates(); // ¡AHORA llamamos a getDates para que encuentre los IDs!
-  } else {
-    console.error("Footer placeholder #footer-placeholder not found!");
+  if (hamburgerButton && navMenu) {
+    hamburgerButton.addEventListener("click", () => {
+      navMenu.classList.toggle("is-open");
+      hamburgerButton.classList.toggle("open");
+    });
   }
-  // --- Modal Logic ---
+
+  // --- 5. FOOTER LOADING LOGIC ---
+  const footerContainer = document.getElementById("footer-placeholder");
+  if (footerContainer) {
+    await loadFooter();
+    getDates();
+  }
+
+  // --- 6. MODAL LOGIC ---
   const calendarModal = document.getElementById("calendarModal");
   const openCalendarBtn = document.getElementById("show-calendar-button");
   const closeCalendarBtn = document.getElementById("close-calendar-modal");
-
   let calendarInitialized = false;
 
-  // Si los elementos existen, activamos la lógica. Si no, no pasa nada.
   if (openCalendarBtn && calendarModal && closeCalendarBtn) {
     openCalendarBtn.onclick = function () {
       calendarModal.style.display = "block";
@@ -54,25 +79,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         calendarInitialized = true;
       }
     };
-
-    closeCalendarBtn.onclick = function () {
-      calendarModal.style.display = "none";
-    };
-
-    window.onclick = function (event) {
-      if (event.target == calendarModal) {
-        calendarModal.style.display = "none";
-      }
+    closeCalendarBtn.onclick = () => (calendarModal.style.display = "none");
+    window.onclick = (event) => {
+      if (event.target == calendarModal) calendarModal.style.display = "none";
     };
   }
-  // Eliminamos el bloque 'else' para que la consola esté 100% limpia
 
-  /*Code to display books after clicking search button using Open Library API*/
+  // --- 7. OPEN LIBRARY API LOGIC ---
   const searchButton = document.getElementById("search-button");
   const searchInput = document.getElementById("search-input");
   const resultsContainer = document.getElementById("results-container");
 
-  // ADD THIS IF STATEMENT TO PREVENT CRASHING
   if (searchButton) {
     searchButton.addEventListener("click", () => {
       const query = searchInput.value.trim();
@@ -83,66 +100,38 @@ document.addEventListener("DOMContentLoaded", async () => {
           .then((response) => response.json())
           .then((data) => {
             resultsContainer.innerHTML = "";
-            const books = data.docs.slice(0, 10);
-            books.forEach((book) => {
+            data.docs.slice(0, 10).forEach((book) => {
               const bookDiv = document.createElement("div");
               bookDiv.classList.add("book");
-              const title = book.title || "No title available";
-              const author = book.author_name
-                ? book.author_name.join(", ")
-                : "Unknown author";
-              const firstPublishYear = book.first_publish_year || "N/A";
               bookDiv.innerHTML = `
-                <h3>${title}</h3>
-                <p><strong>Author(s):</strong> ${author}</p>
-                <p><strong>First Publish Year:</strong> ${firstPublishYear}</p>
-              `;
+                <h3>${book.title || "No title"}</h3>
+                <p><strong>Author:</strong> ${book.author_name ? book.author_name.join(", ") : "Unknown"}</p>
+                <p><strong>Year:</strong> ${book.first_publish_year || "N/A"}</p>`;
               resultsContainer.appendChild(bookDiv);
             });
           })
-          .catch((error) => {
-            resultsContainer.innerHTML =
-              "<p>Error fetching data. Please try again later.</p>";
-            console.error("Error fetching data:", error);
+          .catch((err) => {
+            resultsContainer.innerHTML = "<p>Error fetching data.</p>";
+            console.error(err);
           });
       }
     });
   }
-  /*End of code to display books*/
-  // --- Registration Form Logic ---
-  const registerForm = document.getElementById("register-form");
 
+  // --- 8. REGISTRATION FORM LOGIC ---
+  const registerForm = document.getElementById("register-form");
   if (registerForm) {
     registerForm.addEventListener("submit", (e) => {
-      e.preventDefault(); // stop default navigation
-
+      e.preventDefault();
       const user = {
         firstName: document.getElementById("first-name").value.trim(),
         lastName: document.getElementById("last-name").value.trim(),
         email: document.getElementById("email").value.trim(),
-        mobile: document.getElementById("mobile").value.trim(),
-        grade: document.getElementById("grade").value,
       };
-
-      // Save to localStorage
       let users = JSON.parse(localStorage.getItem("registeredUsers")) || [];
       users.push(user);
       localStorage.setItem("registeredUsers", JSON.stringify(users));
-
-      // Update counter dynamically
-      const formMessage = document.getElementById("formmessage");
-      if (formMessage) {
-        let counter = formMessage.querySelector(".user-count");
-        if (!counter) {
-          counter = document.createElement("p");
-          counter.classList.add("user-count");
-          formMessage.appendChild(counter);
-        }
-        counter.textContent = `Number of registered users: ${users.length}`;
-      }
-
-      // Redirect to thanks page if you want
       window.location.href = "thanks.html";
     });
   }
-}); // This closes the DOMContentLoaded event listener
+}); // THIS IS THE ONLY CLOSING BRACE FOR DOMContentLoaded
